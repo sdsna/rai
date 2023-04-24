@@ -1,0 +1,169 @@
+#1 Download osm.pbfs by continent from Geofabrik
+
+#2 Convert each file to o5m with osmconvert
+
+for f in /Volumes/GUILHERME/_osm_exports/_geofabrik_originals/*.osm.pbf; do osmconvert $f.osm.pbf -o=$f.o5m; done
+
+#3 Filter paved and unpaved roads with osmfilter (.osm as output)
+
+osmfilter africa.o5m --keep-nodes= --keep-relations= --keep-ways="highway=primary =primary_link =secondary =secondary_link =trunk =trunk_link =motorway =motorway_link surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop="access=no surface=unpaved =compacted =fine_gravel =gravel =rock =pebblestone =ground =dirt =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt"  --drop-author --drop-version -o=africa-paved.osm
+
+osmfilter australia-oceania.o5m --keep= --keep-ways="highway=unclassified =track =service =road =footway =bridleway =steps =path =tertiary =tertiary_link surface=unpaved =compacted =fine_gravel =gravel =rock =pebblestone =ground =dirt =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --ignore-dependencies --drop-author --drop-version -o=australia-oceania-unpaved.osm
+
+#3.5 The previous operation might create files too large to pyrosm to ingest, so we might need to run it in separate batches
+
+##PAVED
+
+###PRIMARY
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=primary =primary_link" --drop="access=no surface=unpaved =compacted =fine_gravel =gravel =rock =pebblestone =ground =dirt =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt"  --drop-author --drop-version -o=$f-paved-primary.osm; done
+
+###SECONDARY
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=secondary =secondary_link" --drop="access=no surface=unpaved =compacted =fine_gravel =gravel =rock =pebblestone =ground =dirt =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt"  --drop-author --drop-version -o=$f-paved-secondary.osm; done
+
+###TRUNK AND MOTORWAY
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=trunk =trunk_link =motorway =motorway_link" --drop="access=no surface=unpaved =compacted =fine_gravel =gravel =rock =pebblestone =ground =dirt =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt"  --drop-author --drop-version -o=$f-paved-trunk.osm; done
+
+###RESIDENTIAL - drop
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=residential" --drop="access=no surface=unpaved =compacted =fine_gravel =gravel =rock =pebblestone =ground =dirt =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt"  --drop-author --drop-version -o=$f-paved-residential.osm; done
+
+###ASPHALT - todo again
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=asphalt and name= and lanes=" --drop="highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-name-lanes.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=asphalt and name=" --drop="lanes= highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-name-nolanes.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=asphalt and lanes=" --drop="name= highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-noname-lanes.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=asphalt and oneway=" --drop="lanes= name= highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-noname-nolanes-oneway.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=asphalt" --drop="lanes= name= oneway= highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-noname-nolanes-nooneway.osm; done
+
+
+###OTHER PAVED SURFACES
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=paved =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop="access=no"  --drop-author --drop-version -o=$f-paved-other.osm; done
+
+##UNPAVED
+
+###UNCLASSIFIED -todo again
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=unclassified and surface=unpaved and source=" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-unclassified-source.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=unclassified and surface=unpaved" --drop="source= access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-unclassified-nosource.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=unclassified and source=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-unclassified-source.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=unclassified" --drop="source= access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-unclassified-nosource.osm; done
+
+
+###TERTIARY -todo again
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and surface=unpaved and name=" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-tertiary-unpaved-named.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and surface=unpaved" --drop="name= access=no" --drop-author --drop-version -o=$f-unpaved-tertiary-unpaved-unnamed.osm; done
+
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name= and lanes= and oneway= and source=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named-lanes-oneway-source.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name= and lanes= and oneway=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood source=" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named-lanes-oneway-nosource.osm;done
+
+ osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name= and lanes=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood oneway=" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named-lanes-nooneway.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name= and oneway=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood lanes=" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named-nolanes-nooneway.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood lanes= oneway=" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named-nolanes-oneway.osm; done
+
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name= and oneway=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood lanes=" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named-nolanes-nooneway.osm; done
+
+
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/north*.o5m; do osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link" --drop="name= access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-unnamed.osm; done
+
+###TRACK - todo again
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=track and tracktype=" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-track-type.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=track" --drop="tracktype= access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-track-notype.osm; done
+
+###ROAD - todo
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=road" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-road.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=road" --drop="access=no surface=" --drop-author --drop-version -o=$f-unpaved-road-nosurf.osm; done
+
+###OTHER - todo again
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="highway=path" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-other.osm; done
+
+
+###SURFACE UNPAVED -todo again segundo
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/north*.o5m; do osmfilter $f --keep= --keep-ways="surface=unpaved" --drop="highway=residential =service =track access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-track.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/asia.o5m; do osmfilter $f --keep= --keep-ways="highway=service =track and surface=unpaved" --drop="highway=residential access=no" --drop-author --drop-version -o=$f-unpaved-unpaved.osm; done
+
+
+###SURFACE UNPAVED OTHER -todo remaining
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=fine_gravel =gravel" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-gravel.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=dirt" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-dirt.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=compacted" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-compacted.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=ground" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-ground.osm; done
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=rock =pebblestone =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-other.osm; done
+
+
+
+TODO:
+
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/south-americ*.o5m; do osmfilter $f --keep= --keep-ways="surface=asphalt and name=" --drop="highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-name.osm; osmfilter $f --keep= --keep-ways="surface=asphalt" --drop="name= highway=residential access=no" --drop-author --drop-version -o=$f-paved-asphalt-noname.osm; osmfilter $f --keep= --keep-ways="highway=unclassified and surface=unpaved and source=" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-unclassified-source.osm; osmfilter $f --keep= --keep-ways="highway=unclassified and surface=unpaved" --drop="source= access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-unclassified-nosource.osm; osmfilter $f --keep= --keep-ways="highway=unclassified and source=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-unclassified-source.osm;osmfilter $f --keep= --keep-ways="highway=unclassified" --drop="source= access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-unclassified-nosource.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and surface=unpaved and name=" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-tertiary-unpaved-named.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and surface=unpaved" --drop="name= access=no" --drop-author --drop-version -o=$f-unpaved-tertiary-unpaved-unnamed.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link and name=" --drop="access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-named.osm; osmfilter $f --keep= --keep-ways="highway=tertiary =tertiary_link" --drop="name= access=no surface=unpaved paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-tertiary-other-unpaved-unnamed.osm; osmfilter $f --keep= --keep-ways="highway=track and tracktype=" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-track-type.osm; osmfilter $f --keep= --keep-ways="highway=track" --drop="tracktype= access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-track-notype.osm; osmfilter $f --keep= --keep-ways="highway=road" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-road.osm; osmfilter $f --keep= --keep-ways="highway=road" --drop="access=no surface=" --drop-author --drop-version -o=$f-unpaved-road-nosurf.osm; osmfilter $f --keep= --keep-ways="highway=path" --drop="access=no surface=paved =asphalt =chipseal =concrete =plates =paving_stones =sett =unhewn_cobblestone =cobblestone =metal =wood" --drop-author --drop-version -o=$f-unpaved-other.osm; osmfilter $f --keep= --keep-ways="surface=unpaved and highway=service =track" --drop="highway=residential access=no" --drop-author --drop-version -o=$f-unpaved-unpaved.osm; done
+
+
+REMAINING:
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.o5m; do osmfilter $f --keep= --keep-ways="surface=fine_gravel =gravel" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-gravel.osm; osmfilter $f --keep= --keep-ways="surface=dirt" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-dirt.osm; osmfilter $f --keep= --keep-ways="surface=compacted" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-compacted.osm; osmfilter $f --keep= --keep-ways="surface=ground" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-ground.osm; osmfilter $f --keep= --keep-ways="surface=rock =pebblestone =earth =grass =grass_paver =mud =sand =woodchips =snow =ice =salt" --drop="access=no" --drop-author --drop-version -o=$f-unpaved-unpaved-other.osm; done
+
+
+ERRORS: europe-ground, europe.o5m-unpaved-unpaved-unclassifie
+asia.o5m-unpaved-tertiary-other-unpaved-named.osm.osm.pbf
+
+
+asia.o5m-unpaved-tertiary-unpaved-named.osm.osm.pbf
+
+empty key must not follow OR after AND.
+
+
+
+
+
+
+#4 Convert results to osm.pbf again so it can be read with pyrosm
+
+osmconvert africa-paved.osm -o=africa-paved.osm.pbf
+
+for f in /Volumes/GUILHERME/_osm_exports/_o5m/*.osm; do osmconvert $f -o=$f.osm.pbf; done
+
+#4.5 Alternatively, if file is small enough, use ogr2ogr to go straight to geopackage
+
+ogr2ogr -skipfailures -f "GPKG" africa-paved.gpkg africa-paved.osm lines -dialect sqlite -sql "select Geometry from lines"
+
+
+
+
+
+Other options for extracting desired roads from OSM:
+
+OSMOSIS
+https://w3shaman.com/article/extracting-road-networks-openstreetmap
+
+OSMFILTER
+https://journocode.com/en/tutorials/extracting-geodata-from-openstreetmap-with-osmfilter/
+
+https://wiki.openstreetmap.org/wiki/Osmfilter
+
+
+OSMIUM
+https://osmcode.org/osmium-tool/manual.html#filtering-by-tags
