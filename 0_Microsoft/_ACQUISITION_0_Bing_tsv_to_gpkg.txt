@@ -1,2 +1,7 @@
+#Download individual continent files from https://github.com/microsoft/RoadDetections
+
+#Run the following in the line of command in order to extract geojson features from the tsv file
 grep . Oceania-Full.tsv | cut -f2 > Oceania.geojson
+
+#Transform geojson to geopackage
 ogr2ogr -f GPKG Oceania.gpkg Oceania.geojson
